@@ -1,0 +1,16 @@
+# Ignore everything
+/*
+/*/
+
+# Except git tidbits
+!.gitignore
+!.gitattributes
+
+# The actually needed content
+!/Assets/
+!/ProjectSettings/
+!/Packages/manifest.json
+
+# And maybe some readmes
+!/readme.md
+!/readme.txt
