@@ -11,6 +11,13 @@
 !/ProjectSettings/
 !/Packages/manifest.json
 
+# .csproj files of toitnups
+!/.tn/
+!/.tn/*/
+/.tn/*/*
+!/.tn/*/integration.*.csproj
+!/.tn/*/integration.*.config.json
+
 # And maybe some readmes
 !/readme.md
 !/readme.txt
