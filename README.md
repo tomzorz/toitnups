@@ -7,9 +7,7 @@ You must have [.NET Core 2.1 SDK](https://www.microsoft.com/net/download/windows
 
 ⚠ 👉 Yes, the **SDK**, not just the runtime, as toitnups relies on the `dotnet ...` commands.
 
-## Try the pre-built `toitnups`
-
-// todo... not actually in nuget yet
+## Use the pre-built `toitnups`
 
 You can quickly install and try [toitnups from nuget.org](https://www.nuget.org/packages/toitnups/) using the following commands:
 
@@ -34,7 +32,7 @@ This wouldn't be strictly necessary, but I think it's best to validate the proje
 
 The dotnet toolchain runs to create a .NET Standard 2.0 project and a config file is created that stores the location of the plugins inside the `Assets` folder.
 
-### 3️⃣ you open the created `integration.NAME.csproj` file that was just created
+### 3️⃣ you open the `integration.NAME.csproj` file that was just created
 
 ... and add the needed NuGet references via Visual Studio as you normally would.
 
