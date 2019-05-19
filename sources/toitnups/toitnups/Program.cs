@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Xml;
+using System.Xml.Serialization;
 using Newtonsoft.Json;
 
 namespace toitnups
@@ -19,7 +22,8 @@ namespace toitnups
         {
             // debug
             //args = new[] {"init"};
-            args = new[] {"add", "signalr", "Plugins\\Signalr"};
+            //args = new[] {"add", "signalr", "Plugins\\Signalr"};
+            args = new[] {"push"};
 
             switch (args.Length)
             {
@@ -166,7 +170,7 @@ namespace toitnups
             p.Start();
             p.WaitForExit();
 
-            // todo clean unnecessary stuff
+            File.Delete($"{dir}\\Class1.cs");
 
             var configPath = $"{dir}\\integration.{s}.config.json";
             var cfg = new Config
@@ -197,7 +201,107 @@ namespace toitnups
         {
             if (!CheckInit()) return;
 
-            // todo
+            foreach (var integration in Directory.GetDirectories($"{TnFolder}"))
+            {
+                var integrationName = integration.Split('\\')[1];
+
+                var p = new Process
+                {
+                    StartInfo = new ProcessStartInfo("dotnet")
+                    {
+                        WorkingDirectory = integration,
+                        Arguments = "publish -c Release"
+                    }
+                };
+                p.Start();
+                p.WaitForExit();
+
+                var pubFiles = Directory.GetFiles($"{integration}\\bin\\Release\\netstandard2.0\\publish")
+                    .Where(x => !x.EndsWith(".pdb") && !x.EndsWith(".json") && !x.EndsWith($"{integrationName}.dll"))
+                    .ToList();
+
+                var cfg = JsonConvert.DeserializeObject<Config>(File.ReadAllText($"{integration}\\{integrationName}.config.json"));
+
+                var targetDir = $"Assets\\{cfg.unityPath}";
+                Directory.CreateDirectory(targetDir);
+
+                var libNames = new List<string>();
+
+                foreach (var pubFile in pubFiles)
+                {
+                    var ln = pubFile.Split('\\').Last();
+                    libNames.Add(ln.Replace(".dll", ""));
+                    File.Copy(pubFile, $"{targetDir}\\{ln}", true);
+                }
+
+                var linkXmlPath = $"Assets\\link.xml";
+                var ser = new XmlSerializer(typeof(Linker));
+                var en = new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
+                var xmlSettings = new XmlWriterSettings
+                {
+                    Indent = true,
+                    IndentChars = "\t",
+                    OmitXmlDeclaration = true
+                };
+
+                if (File.Exists(linkXmlPath))
+                {
+                    var linkXmlText = File.ReadAllText(linkXmlPath);
+                    var updatedLinkXmlText = "";
+
+                    using (var tr = new StringReader(linkXmlText))
+                    {
+                        var linker = (Linker)ser.Deserialize(tr);
+                        foreach (var libName in libNames)
+                        {
+                            if (linker.LinkAssemblies.Any(x => x.Fullname == libName))
+                            {
+                                // library already in it
+                            }
+                            else
+                            {
+                                linker.LinkAssemblies.Add(new LinkAssembly
+                                {
+                                    Fullname = libName,
+                                    Preserve = "full"
+                                });
+                            }
+                        }
+
+                        using (var tw = new StringWriter())
+                        {
+                            using (var xw = XmlWriter.Create(tw, xmlSettings))
+                            {
+                                ser.Serialize(xw, linker, en);
+                                updatedLinkXmlText = tw.ToString();
+                            }
+                        }
+                    }
+
+                    File.WriteAllText(linkXmlPath, updatedLinkXmlText);
+                }
+                else
+                {
+                    var linker = new Linker
+                    {
+                        LinkAssemblies = libNames.Select(x => new LinkAssembly
+                        {
+                            Fullname = x,
+                            Preserve = "full"
+                        }).ToList()
+                    };
+
+                    using (var tw = new StringWriter())
+                    {
+                        using (var xw = XmlWriter.Create(tw, xmlSettings))
+                        {
+                            ser.Serialize(xw, linker, en);
+                            var linkXmlText = tw.ToString();
+                            File.WriteAllText(linkXmlPath, linkXmlText);
+                        }
+                    }
+                }
+            }
         }
     }
 }

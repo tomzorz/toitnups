@@ -3,7 +3,9 @@
 
 ![platform-any](https://img.shields.io/badge/platform-any-green.svg?longCache=true&style=flat-square) ![nuget-yes](https://img.shields.io/badge/nuget-yes-green.svg?longCache=true&style=flat-square) ![license-MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat-square)
 
-You must have [.NET Core 2.1](https://www.microsoft.com/net/download/windows) or higher installed.
+You must have [.NET Core 2.1 SDK](https://www.microsoft.com/net/download/windows) or higher installed.
+
+⚠ 👉 Yes, the **SDK**, not just the runtime, as toitnups relies on the `dotnet ...` commands.
 
 ## Try the pre-built `toitnups`
 
@@ -24,8 +26,30 @@ toitnups push
 
 ## How does it work?
 
-// todo
+### 1️⃣ `init` makes sure everything is in the right place
+
+This wouldn't be strictly necessary, but I think it's best to validate the project version and folder structure. If everything is in order the `.ts` folder is created.
+
+### 2️⃣ `add` adds a "dummy" project and some congfiguration
+
+The dotnet toolchain runs to create a .NET Standard 2.0 project and a config file is created that stores the location of the plugins inside the `Assets` folder.
+
+### 3️⃣ you open the created `integration.NAME.csproj` file that was just created
+
+... and add the needed NuGet references via Visual Studio as you normally would.
+
+### 4️⃣ `push` migrates the required files to the Unity project
+
+The dotnet toolchain runs again, publishing the project in release mode. This copies all the necessary files to one folder. Then these files are gathered, copied over to the target folder, and the `link.xml` file is created/updated, ensuring that none of the code is removed by the sometimes too eager IL2CPP backend.
+
+## Anything else?
+
+### There's also a `remove` command...
+
+It removes an integration, essentially the opposite of `add`.
+
+⚠ 👉 Important to note, that this does not remove any files from the Unity project.
 
 ## Future features
 
-// todo
+See [issues tagged with enhancements](https://github.com/tomzorz/toitnups/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement).
