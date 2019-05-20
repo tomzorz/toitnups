@@ -18,6 +18,10 @@ namespace toitnups
 
         private const string TnFolder = ".tn";
 
+        /// <summary>
+        /// Main entry
+        /// </summary>
+        /// <param name="args">command line args</param>
         static void Main(string[] args)
         {
             switch (args.Length)
@@ -61,6 +65,9 @@ namespace toitnups
             }
         }
 
+        /// <summary>
+        /// Displays help
+        /// </summary>
         private static void DisplayHelp()
         {
             Console.WriteLine();
@@ -80,8 +87,12 @@ namespace toitnups
             Console.WriteLine();
         }
 
+        /// <summary>
+        /// Ensures that the .tn folder is created in a supported project and in the correct location
+        /// </summary>
         private static void Initialize()
         {
+            // check unity folders & files
             if (!Directory.Exists("Assets"))
             {
                 Console.WriteLine("Couldn't find Assets folder, are you sure this is a Unity project's folder?");
@@ -100,6 +111,7 @@ namespace toitnups
                 return;
             }
 
+            // check if the target project is at least version 2018.1
             try
             {
                 var version = int.Parse(File.ReadAllLines("ProjectSettings\\ProjectVersion.txt")[0].Split(':')[1].Trim().Split('.')[0]);
@@ -119,6 +131,10 @@ namespace toitnups
             }
         }
 
+        /// <summary>
+        /// Checks if the .tn folder exists
+        /// </summary>
+        /// <returns></returns>
         private static bool CheckInit()
         {
             if (Directory.Exists(TnFolder)) return true;
@@ -126,10 +142,21 @@ namespace toitnups
             return false;
         }
 
+        /// <summary>
+        /// Validates that the supplied integration name can be used in a path
+        /// </summary>
+        /// <param name="path">supplied path</param>
+        /// <returns>if the path is valid or not</returns>
         private static bool ValidatePath(string path) => !Path.GetInvalidPathChars().Any(path.Contains);
 
+        /// <summary>
+        /// Adds a new integration via the dotnet toolchain
+        /// </summary>
+        /// <param name="s">integration name</param>
+        /// <param name="unityPath">unity target path</param>
         private static void Add(string s, string unityPath)
         {
+            // validate requirements
             if (!CheckInit()) return;
 
             if (!ValidatePath(s))
@@ -152,6 +179,7 @@ namespace toitnups
                 return;
             }
 
+            // create folder & run the dotnet toolchain to create a .net standard 2.0 project
             Directory.CreateDirectory(dir);
 
             var p = new Process
@@ -165,8 +193,10 @@ namespace toitnups
             p.Start();
             p.WaitForExit();
 
+            // clean up the unnecessary file(s)
             File.Delete($"{dir}\\Class1.cs");
 
+            // create and save config
             var configPath = $"{dir}\\integration.{s}.config.json";
             var cfg = new Config
             {
@@ -177,8 +207,13 @@ namespace toitnups
             Console.WriteLine("Created integration, now you can open the .csproj file add your NuGet packages.");
         }
 
+        /// <summary>
+        /// Removes an integration
+        /// </summary>
+        /// <param name="s">integration name</param>
         private static void Remove(string s)
         {
+            // validate requirements
             if (!CheckInit()) return;
 
             var dir = $"{TnFolder}\\integration.{s}";
@@ -189,19 +224,26 @@ namespace toitnups
                 return;
             }
 
+            // delete the integration
             Directory.Delete(dir, true);
         }
 
+        /// <summary>
+        /// Pushes integrations to their targets
+        /// </summary>
         private static void Push()
         {
+            // validate requirements
             if (!CheckInit()) return;
 
             var libNames = new List<string>();
 
+            // iterate over the integrations
             foreach (var integration in Directory.GetDirectories($"{TnFolder}"))
             {
                 var integrationName = integration.Split('\\')[1];
 
+                // run the dotnet toolchain to publish the integration project
                 var p = new Process
                 {
                     StartInfo = new ProcessStartInfo("dotnet")
@@ -213,15 +255,18 @@ namespace toitnups
                 p.Start();
                 p.WaitForExit();
 
+                // get files to copy
                 var pubFiles = Directory.GetFiles($"{integration}\\bin\\Release\\netstandard2.0\\publish")
                     .Where(x => !x.EndsWith(".pdb") && !x.EndsWith(".json") && !x.EndsWith($"{integrationName}.dll"))
                     .ToList();
 
+                // get config for unity target
                 var cfg = JsonConvert.DeserializeObject<Config>(File.ReadAllText($"{integration}\\{integrationName}.config.json"));
 
                 var targetDir = $"Assets\\{cfg.unityPath}";
                 Directory.CreateDirectory(targetDir);
 
+                // copy over files and and add them to the lib name list
                 foreach (var pubFile in pubFiles)
                 {
                     var ln = pubFile.Split('\\').Last();
@@ -230,6 +275,7 @@ namespace toitnups
                 }
             }
 
+            // init link.xml serializer
             var linkXmlPath = $"Assets\\link.xml";
             var ser = new XmlSerializer(typeof(Linker));
             var en = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
@@ -242,6 +288,8 @@ namespace toitnups
 
             if (File.Exists(linkXmlPath))
             {
+                // we have a link.xml, so open and add the missing libs
+
                 var linkXmlText = File.ReadAllText(linkXmlPath);
                 var updatedLinkXmlText = "";
 
@@ -278,6 +326,8 @@ namespace toitnups
             }
             else
             {
+                // we don't have a link.xml yet so create a new one
+
                 var linker = new Linker
                 {
                     LinkAssemblies = libNames.Distinct().Select(x => new LinkAssembly
