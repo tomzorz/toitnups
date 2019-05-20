@@ -20,11 +20,6 @@ namespace toitnups
 
         static void Main(string[] args)
         {
-            // debug
-            //args = new[] {"init"};
-            //args = new[] {"add", "signalr", "Plugins\\Signalr"};
-            args = new[] {"push"};
-
             switch (args.Length)
             {
                 case 1:
