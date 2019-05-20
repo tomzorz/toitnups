@@ -196,6 +196,8 @@ namespace toitnups
         {
             if (!CheckInit()) return;
 
+            var libNames = new List<string>();
+
             foreach (var integration in Directory.GetDirectories($"{TnFolder}"))
             {
                 var integrationName = integration.Split('\\')[1];
@@ -220,80 +222,78 @@ namespace toitnups
                 var targetDir = $"Assets\\{cfg.unityPath}";
                 Directory.CreateDirectory(targetDir);
 
-                var libNames = new List<string>();
-
                 foreach (var pubFile in pubFiles)
                 {
                     var ln = pubFile.Split('\\').Last();
                     libNames.Add(ln.Replace(".dll", ""));
                     File.Copy(pubFile, $"{targetDir}\\{ln}", true);
                 }
+            }
 
-                var linkXmlPath = $"Assets\\link.xml";
-                var ser = new XmlSerializer(typeof(Linker));
-                var en = new XmlSerializerNamespaces(new[] {XmlQualifiedName.Empty});
-                var xmlSettings = new XmlWriterSettings
+            var linkXmlPath = $"Assets\\link.xml";
+            var ser = new XmlSerializer(typeof(Linker));
+            var en = new XmlSerializerNamespaces(new[] { XmlQualifiedName.Empty });
+            var xmlSettings = new XmlWriterSettings
+            {
+                Indent = true,
+                IndentChars = "\t",
+                OmitXmlDeclaration = true
+            };
+
+            if (File.Exists(linkXmlPath))
+            {
+                var linkXmlText = File.ReadAllText(linkXmlPath);
+                var updatedLinkXmlText = "";
+
+                using (var tr = new StringReader(linkXmlText))
                 {
-                    Indent = true,
-                    IndentChars = "\t",
-                    OmitXmlDeclaration = true
-                };
-
-                if (File.Exists(linkXmlPath))
-                {
-                    var linkXmlText = File.ReadAllText(linkXmlPath);
-                    var updatedLinkXmlText = "";
-
-                    using (var tr = new StringReader(linkXmlText))
+                    var linker = (Linker)ser.Deserialize(tr);
+                    foreach (var libName in libNames.Distinct())
                     {
-                        var linker = (Linker)ser.Deserialize(tr);
-                        foreach (var libName in libNames)
+                        if (linker.LinkAssemblies.Any(x => x.Fullname == libName))
                         {
-                            if (linker.LinkAssemblies.Any(x => x.Fullname == libName))
-                            {
-                                // library already in it
-                            }
-                            else
-                            {
-                                linker.LinkAssemblies.Add(new LinkAssembly
-                                {
-                                    Fullname = libName,
-                                    Preserve = "full"
-                                });
-                            }
+                            // library already in it
                         }
-
-                        using (var tw = new StringWriter())
+                        else
                         {
-                            using (var xw = XmlWriter.Create(tw, xmlSettings))
+                            linker.LinkAssemblies.Add(new LinkAssembly
                             {
-                                ser.Serialize(xw, linker, en);
-                                updatedLinkXmlText = tw.ToString();
-                            }
+                                Fullname = libName,
+                                Preserve = "full"
+                            });
                         }
                     }
-
-                    File.WriteAllText(linkXmlPath, updatedLinkXmlText);
-                }
-                else
-                {
-                    var linker = new Linker
-                    {
-                        LinkAssemblies = libNames.Select(x => new LinkAssembly
-                        {
-                            Fullname = x,
-                            Preserve = "full"
-                        }).ToList()
-                    };
 
                     using (var tw = new StringWriter())
                     {
                         using (var xw = XmlWriter.Create(tw, xmlSettings))
                         {
                             ser.Serialize(xw, linker, en);
-                            var linkXmlText = tw.ToString();
-                            File.WriteAllText(linkXmlPath, linkXmlText);
+                            updatedLinkXmlText = tw.ToString();
                         }
+                    }
+                }
+
+                File.WriteAllText(linkXmlPath, updatedLinkXmlText);
+            }
+            else
+            {
+                var linker = new Linker
+                {
+                    LinkAssemblies = libNames.Distinct().Select(x => new LinkAssembly
+                    {
+                        Fullname = x,
+                        Preserve = "full"
+                    }).ToList()
+                };
+
+                using (var tw = new StringWriter())
+                {
+                    using (var xw = XmlWriter.Create(tw, xmlSettings))
+                    {
+                        ser.Serialize(xw, linker, en);
+                        var linkXmlText = tw.ToString();
+                        File.WriteAllText(linkXmlPath, linkXmlText);
                     }
                 }
             }
