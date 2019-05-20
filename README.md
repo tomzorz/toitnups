@@ -48,6 +48,14 @@ It removes an integration, essentially the opposite of `add`.
 
 ⚠ 👉 Important to note, that this does not remove any files from the Unity project.
 
+## Why not use the NuGet package manager from the Asset Store or other method XYZ?
+
+There are multiple factors here.
+
+1. The asset store NuGet package manager is separately maintained/implemented, therefore it's always going to lag behind any official implementation and have more bugs/issues.
+2. I strongly believe that Unity's way to extend the editor is wrong. I shouldn't have to add assets/packages to my *project* to extend the *editor*. 
+3. This tool automates the hurdles with `link.xml`. 
+
 ## Future features
 
 See [issues tagged with enhancements](https://github.com/tomzorz/toitnups/issues?q=is%3Aissue+is%3Aopen+label%3Aenhancement).
