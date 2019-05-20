@@ -26,7 +26,7 @@ toitnups push
 
 ### 1️⃣ `init` makes sure everything is in the right place
 
-This wouldn't be strictly necessary, but I think it's best to validate the project version and folder structure. If everything is in order the `.ts` folder is created.
+This wouldn't be strictly necessary, but I think it's best to validate the project version and folder structure. If everything is in order the `.tn` folder is created.
 
 ### 2️⃣ `add` adds a "dummy" project and some congfiguration
 
