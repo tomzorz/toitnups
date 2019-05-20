@@ -67,16 +67,16 @@ namespace toitnups
             Console.WriteLine(" - USAGE -");
             Console.WriteLine();
             Console.WriteLine($"> {nameof(toitnups)} {InitArg}");
-            Console.WriteLine("Checks for a valid Unity project and creates folder for integrations");
+            Console.WriteLine("Checks for a valid Unity project and creates folder for integrations.");
             Console.WriteLine();
             Console.WriteLine($"> {nameof(toitnups)} {AddArg} [integration name] [path to dlls inside Unity assets folder]");
-            Console.WriteLine("Adds a new integration project");
+            Console.WriteLine("Adds a new integration project.");
             Console.WriteLine();
             Console.WriteLine($"> {nameof(toitnups)} {RemoveArg} [integration name]");
             Console.WriteLine("Removes an integration project (although you can just delete the folder...)");
             Console.WriteLine();
             Console.WriteLine($"> {nameof(toitnups)} {PushArg}");
-            Console.WriteLine("Publishes the NuGet dlls to the target folder");
+            Console.WriteLine("Publishes the NuGet dlls to the target folder.");
             Console.WriteLine();
         }
 
@@ -122,7 +122,7 @@ namespace toitnups
         private static bool CheckInit()
         {
             if (Directory.Exists(TnFolder)) return true;
-            Console.WriteLine($"{nameof(toitnups)} folder missing, make sure you're running the command in the right folder and you've called \"{nameof(toitnups)} {InitArg}\"");
+            Console.WriteLine($"{nameof(toitnups)} folder missing, make sure you're running the command in the right folder and you've called \"{nameof(toitnups)} {InitArg}\".");
             return false;
         }
 
@@ -134,13 +134,13 @@ namespace toitnups
 
             if (!ValidatePath(s))
             {
-                Console.WriteLine("The supplied integration name is invalid");
+                Console.WriteLine("The supplied integration name is invalid.");
                 return;
             }
 
             if (!ValidatePath(unityPath))
             {
-                Console.WriteLine("The supplied Unity path is invalid");
+                Console.WriteLine("The supplied Unity path is invalid.");
                 return;
             }
 
@@ -148,7 +148,7 @@ namespace toitnups
 
             if (Directory.Exists(dir))
             {
-                Console.WriteLine("Integration already exists with that name");
+                Console.WriteLine("Integration already exists with that name.");
                 return;
             }
 
@@ -174,7 +174,7 @@ namespace toitnups
             };
             File.WriteAllText(configPath, JsonConvert.SerializeObject(cfg));
 
-            Console.WriteLine("Created integration. Now you can open the .csproj file add your NuGet packages.");
+            Console.WriteLine("Created integration, now you can open the .csproj file add your NuGet packages.");
         }
 
         private static void Remove(string s)
@@ -185,7 +185,7 @@ namespace toitnups
 
             if (!Directory.Exists(dir))
             {
-                Console.WriteLine("Couldn't find integration with the supplied name");
+                Console.WriteLine("Couldn't find integration with the supplied name.");
                 return;
             }
 
@@ -297,6 +297,8 @@ namespace toitnups
                     }
                 }
             }
+
+            Console.WriteLine("Integrations successfully pushed to their targets.");
         }
     }
 }
