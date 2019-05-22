@@ -42,7 +42,11 @@ The dotnet toolchain runs again, publishing the project in release mode. This co
 
 ## Anything else?
 
-### There's also a `remove` command...
+### You can `push` a specific integration or all of them
+
+If you specify an integration name after `push`, e.g. `toitnups push sample` it'll only update that integration. If the name is omitted then all the integrations are updated.
+
+### There's also a `remove` command
 
 It removes an integration, essentially the opposite of `add`.
 

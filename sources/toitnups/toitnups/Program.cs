@@ -45,6 +45,9 @@ namespace toitnups
                         case RemoveArg:
                             Remove(args[1]);
                             return;
+                        case PushArg:
+                            Push(args[1]);
+                            return;
                         default:
                             DisplayHelp();
                             return;
@@ -84,6 +87,9 @@ namespace toitnups
             Console.WriteLine();
             Console.WriteLine($"> {nameof(toitnups)} {PushArg}");
             Console.WriteLine("Publishes the NuGet dlls to the target folder.");
+            Console.WriteLine();
+            Console.WriteLine($"> {nameof(toitnups)} {PushArg} [integration name]");
+            Console.WriteLine("Publishes the NuGet dlls of the specified integration to the target folder.");
             Console.WriteLine();
         }
 
@@ -204,7 +210,7 @@ namespace toitnups
             };
             File.WriteAllText(configPath, JsonConvert.SerializeObject(cfg));
 
-            Console.WriteLine("Created integration, now you can open the .csproj file add your NuGet packages.");
+            Console.WriteLine($"Created integration {s}, now you can open the .csproj file add your NuGet packages.");
         }
 
         /// <summary>
@@ -226,53 +232,36 @@ namespace toitnups
 
             // delete the integration
             Directory.Delete(dir, true);
+
+            Console.WriteLine($"Removed integration {s}.");
         }
 
         /// <summary>
         /// Pushes integrations to their targets
         /// </summary>
-        private static void Push()
+        /// <param name="specificIntegration">Only push the one passed integration if it exists (optional)</param>
+        private static void Push(string specificIntegration = null)
         {
             // validate requirements
             if (!CheckInit()) return;
 
             var libNames = new List<string>();
 
-            // iterate over the integrations
-            foreach (var integration in Directory.GetDirectories($"{TnFolder}"))
+            if (string.IsNullOrWhiteSpace(specificIntegration))
             {
-                var integrationName = integration.Split('\\')[1];
-
-                // run the dotnet toolchain to publish the integration project
-                var p = new Process
+                // iterate over the integrations
+                foreach (var integration in Directory.GetDirectories($"{TnFolder}")) PublishAndCopyLibraries(integration, libNames);
+            }
+            else
+            {
+                // do the specified integration only if it exists
+                var specIntFolder = $"{TnFolder}\\{specificIntegration}";
+                if (!Directory.Exists(specIntFolder))
                 {
-                    StartInfo = new ProcessStartInfo("dotnet")
-                    {
-                        WorkingDirectory = integration,
-                        Arguments = "publish -c Release"
-                    }
-                };
-                p.Start();
-                p.WaitForExit();
-
-                // get files to copy
-                var pubFiles = Directory.GetFiles($"{integration}\\bin\\Release\\netstandard2.0\\publish")
-                    .Where(x => !x.EndsWith(".pdb") && !x.EndsWith(".json") && !x.EndsWith($"{integrationName}.dll"))
-                    .ToList();
-
-                // get config for unity target
-                var cfg = JsonConvert.DeserializeObject<Config>(File.ReadAllText($"{integration}\\{integrationName}.config.json"));
-
-                var targetDir = $"Assets\\{cfg.unityPath}";
-                Directory.CreateDirectory(targetDir);
-
-                // copy over files and and add them to the lib name list
-                foreach (var pubFile in pubFiles)
-                {
-                    var ln = pubFile.Split('\\').Last();
-                    libNames.Add(ln.Replace(".dll", ""));
-                    File.Copy(pubFile, $"{targetDir}\\{ln}", true);
+                    Console.WriteLine("Couldn't find integration with the supplied name.");
+                    return;
                 }
+                PublishAndCopyLibraries(specIntFolder, libNames);
             }
 
             // init link.xml serializer
@@ -348,7 +337,50 @@ namespace toitnups
                 }
             }
 
-            Console.WriteLine("Integrations successfully pushed to their targets.");
+            Console.WriteLine(string.IsNullOrWhiteSpace(specificIntegration) 
+                ? "Integrations successfully pushed to their targets."
+                : $"Integration {specificIntegration} pushed to its target.");
+        }
+
+        /// <summary>
+        /// Gathers and copies the dll files
+        /// </summary>
+        /// <param name="integration">integration name</param>
+        /// <param name="libNames">list of copied dll files</param>
+        private static void PublishAndCopyLibraries(string integration, List<string> libNames)
+        {
+            var integrationName = integration.Split('\\')[1];
+
+            // run the dotnet toolchain to publish the integration project
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo("dotnet")
+                {
+                    WorkingDirectory = integration,
+                    Arguments = "publish -c Release"
+                }
+            };
+            p.Start();
+            p.WaitForExit();
+
+            // get files to copy
+            var pubFiles = Directory.GetFiles($"{integration}\\bin\\Release\\netstandard2.0\\publish")
+                .Where(x => !x.EndsWith(".pdb") && !x.EndsWith(".json") && !x.EndsWith($"{integrationName}.dll"))
+                .ToList();
+
+            // get config for unity target
+            var cfg = JsonConvert.DeserializeObject<Config>(File.ReadAllText($"{integration}\\{integrationName}.config.json"));
+
+            var targetDir = $"Assets\\{cfg.unityPath}";
+            Directory.CreateDirectory(targetDir);
+
+            // copy over files and and add them to the lib name list
+            foreach (var pubFile in pubFiles)
+            {
+                var ln = pubFile.Split('\\').Last();
+                libNames.Add(ln.Replace(".dll", ""));
+                File.Copy(pubFile, $"{targetDir}\\{ln}", true);
+            }
         }
     }
 }
