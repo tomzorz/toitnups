@@ -296,7 +296,7 @@ namespace toitnups
                             linker.LinkAssemblies.Add(new LinkAssembly
                             {
                                 Fullname = libName,
-                                Preserve = "full"
+                                Preserve = "all"
                             });
                         }
                     }

@@ -19,11 +19,11 @@
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <RepositoryUrl>https://github.com/tomzorz/toitnups</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <Version>1.0.1.0</Version>
-    <AssemblyVersion>1.0.1.0</AssemblyVersion>
-    <FileVersion>1.0.1.0</FileVersion>
-    <PackageReleaseNotes>1.0.1
-- removed some debug code that was accidentally left in</PackageReleaseNotes>
+    <Version>1.0.2.0</Version>
+    <AssemblyVersion>1.0.2.0</AssemblyVersion>
+    <FileVersion>1.0.2.0</FileVersion>
+    <PackageReleaseNotes>1.0.2
+- fixed a bug in the link.xml generation</PackageReleaseNotes>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
