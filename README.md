@@ -3,7 +3,7 @@
 
 ![platform-any](https://img.shields.io/badge/platform-any-green.svg?longCache=true&style=flat-square) ![nuget-yes](https://img.shields.io/badge/nuget-yes-green.svg?longCache=true&style=flat-square) ![license-MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat-square)
 
-![](https://i.giphy.com/media/MFPOhc5tiZ0RiMNPIS/giphy-downsized-large.gif)
+![](tn.gif)
 
 You must have [.NET Core 2.1 SDK](https://www.microsoft.com/net/download/windows) or higher installed.
 
