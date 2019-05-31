@@ -1,5 +1,12 @@
 # toitnups
-**T**ool f**O**r un**IT**y **NU**get **P**ackage**S** - use a "dummy" .NET Standard 2.0 library to pull the required NuGet libraries and their dependencies together and move them over to your Unity project.
+
+### _The surefire and easy way to get NuGet packages into your Unity projects!_ 
+
+This tiny command line tool lets you use a "dummy" .NET Standard 2.0 library to pull the required NuGet libraries and their dependencies together, and move them over to your Unity project. Featuring...
+
+* automatic link.xml generation for IL2CPP builds!
+* use Visual Studio to manage NuGet packages!
+* no need to add any additional files into your Unity project!
 
 ![platform-any](https://img.shields.io/badge/platform-any-green.svg?longCache=true&style=flat-square) ![nuget-yes](https://img.shields.io/badge/nuget-yes-green.svg?longCache=true&style=flat-square) ![license-MIT](https://img.shields.io/badge/license-MIT-blue.svg?longCache=true&style=flat-square)
 
@@ -61,6 +68,10 @@ There are multiple factors here.
 1. The asset store NuGet package manager is separately maintained/implemented, therefore it's always going to lag behind any official implementation and have more bugs/issues.
 2. I strongly believe that Unity's way to extend the editor is wrong. I shouldn't have to add assets/packages to my *project* to extend the *editor*. 
 3. This tool automates the hurdles with `link.xml`. 
+
+## Why toitnups?
+
+**T**ool f**O**r un**IT**y **NU**get **P**ackage**S**
 
 ## Future features
 
